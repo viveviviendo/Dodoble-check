@@ -9,7 +9,7 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #1db2b4;
+      background: #4eee04;
       padding: 40px;
       display: flex;
       justify-content: center;
@@ -186,11 +186,8 @@ const ABI = [
   }
 ];
 
-// Función temporal de prueba, apunta a imágenes públicas garantizadas.
 function getGatewayUrl(ipfsUrl) {
-    // Si la URL de IPFS falla, usamos una imagen de prueba temporalmente.
-    // **ESTO DEBE SER REVERTIDO LUEGO DE LA PRUEBA**
-    return "https://upload.wikimedia.org/wikipedia/commons/4/47/Google_logo.svg"; 
+    return ipfsUrl.replace("ipfs://", "https://w3s.link/ipfs/");
 }
 
 async function verifyProduct() {
