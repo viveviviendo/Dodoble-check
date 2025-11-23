@@ -6,34 +6,46 @@
   <title>Dodoble – Verificación</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background:#eef1f4; padding:40px; }
-    .card { background:white; padding:30px; border-radius:16px; max-width:800px; margin:auto; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
-    h1 { font-size:28px; margin-bottom:20px; }
-    .row { display:flex; gap:10px; margin-bottom:20px; }
-    input, select { padding:10px; font-size:16px; }
-    button { padding:10px 20px; font-size:16px; background:black; color:white; border:none; border-radius:6px; cursor:pointer; }
-    #images { display:none; margin-top:20px; justify-content:space-between; }
-    img { width:45%; border-radius:8px; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f4f7f9; padding:40px; }
+    .card { background:white; padding:30px; border-radius:16px; max-width:700px; margin:auto; box-shadow:0 6px 25px rgba(0,0,0,0.1); border: 1px solid #e0e0e0; }
+    h1 { font-size:28px; margin-bottom:25px; color: #333; }
+    .row { display:flex; gap:15px; margin-bottom:20px; align-items: center; }
+    select { padding:10px; font-size:16px; border: 1px solid #ccc; border-radius: 6px; }
+    button { padding:10px 25px; font-size:16px; background:#007bff; color:white; border:none; border-radius:6px; cursor:pointer; transition: background 0.3s; }
+    button:hover { background: #0056b3; }
+    #result { margin-top: 20px; padding: 15px; border-radius: 8px; font-size: 16px; line-height: 1.6; }
+    .success { background-color: #e6ffed; border: 1px solid #4CAF50; color: #0f5132; }
+    .error { background-color: #f8d7da; border: 1px solid #dc3545; color: #842029; }
+    #images { display:none; margin-top:30px; justify-content:space-around; gap: 20px; }
+    .image-container { text-align: center; }
+    img { width: 300px; max-width: 100%; height: auto; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+    .image-label { margin-top: 10px; font-weight: bold; color: #555; }
   </style>
 </head>
 
 <body>
   <div class="card">
-    <h1>🔍 Verificación de Producto</h1>
+    <h1>🔍 Verificación de Producto Dodoble</h1>
 
     <div class="row">
       <label>Product ID:</label>
       <select id="productId">
-        <option value="1">1</option>
+        <option value="1">1 (Zentra Sleep)</option>
       </select>
-      <button onclick="verifyProduct()">Verificar</button>
+      <button onclick="verifyProduct()">Verificar Autenticidad</button>
     </div>
 
-    <div id="result">Introduce un ID y pulsa verificar.</div>
+    <div id="result" class="error">Introduce un ID y pulsa verificar.</div>
 
     <div id="images" class="row">
-      <img id="imgOriginal" />
-      <img id="imgAI" />
+      <div class="image-container">
+        <img id="imgOriginal" />
+        <div class="image-label">Producto Original</div>
+      </div>
+      <div class="image-container">
+        <img id="imgAI" />
+        <div class="image-label">Generado por IA (Verificación)</div>
+      </div>
     </div>
   </div>
 
@@ -42,175 +54,29 @@
 const CONTRACT_ADDRESS = "0x8A9adbC95A900ec0780fCB57828CbB3D0911B985";
 const METADATA_CID = "bafybeiamtaaox6seecbkqa4jaw2ngmbgae7c6klmspvvaaaulhu6kgmqzu";
 
+// ABI mínima requerida para el getter de mapping 'verifications'
 const ABI = [
   {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "productId",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "imageHash",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "verifier",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
-    ],
-    "name": "VerificationIssued",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "imageHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getVerification",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "productId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "returnedHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "verifier",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "exists",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "imageHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "isVerified",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "productId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "imageHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "issueVerification",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+      {"internalType": "bytes32", "name": "", "type": "bytes32"}
     ],
     "name": "verifications",
     "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "productId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "imageHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "verifier",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "exists",
-        "type": "bool"
-      }
+      {"internalType": "uint256", "name": "productId", "type": "uint256"},
+      {"internalType": "bytes32", "name": "imageHash", "type": "bytes32"},
+      {"internalType": "address", "name": "verifier", "type": "address"},
+      {"internalType": "uint256", "name": "timestamp", "type": "uint256"},
+      {"internalType": "bool", "name": "exists", "type": "bool"}
     ],
     "stateMutability": "view",
     "type": "function"
   }
 ];
 
+
 async function verifyProduct() {
   document.getElementById("result").innerHTML = "Verificando…";
+  document.getElementById("result").className = ""; // Limpiar clases de estilo
 
   try {
     // 1. Obtener Metadatos del Producto
@@ -221,14 +87,16 @@ async function verifyProduct() {
     const provider = new ethers.JsonRpcProvider("https://polygon-rpc.com");
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
-    // 3. Convertir hash a bytes32 y llamar a la función view del contrato
+    // 3. Convertir hash a bytes32 y llamar a la función CORRECTA
     const hashBytes = ethers.getBytes(metadata.hash);
 
-    const info = await contract.getVerification(hashBytes);
+    // *** LÍNEA CORREGIDA ***
+    const info = await contract.verifications(hashBytes); 
 
     // 4. Mostrar Resultado de la Verificación
     if (!info.exists) {
-      document.getElementById("result").innerHTML = "❌ Producto NO encontrado en blockchain.";
+      document.getElementById("result").className = "error";
+      document.getElementById("result").innerHTML = "❌ Producto NO encontrado en blockchain. El hash no ha sido registrado.";
       return;
     }
 
@@ -239,17 +107,22 @@ async function verifyProduct() {
       metadata.image_ai.replace("ipfs://", "https://w3s.link/ipfs/");
     document.getElementById("images").style.display = "flex";
 
+    // 6. Formatear la salida
+    const date = new Date(Number(info.timestamp) * 1000).toLocaleString();
+
+    document.getElementById("result").className = "success";
     document.getElementById("result").innerHTML = `
-      ✔ Producto encontrado<br><br>
+      ✅ Verificación Exitosa: ¡Producto Auténtico!<br><br>
       <strong>Nombre:</strong> ${metadata.name}<br>
-      <strong>Hash on-chain:</strong> ${info.returnedHash}<br>
-      <strong>Timestamp:</strong> ${new Date(Number(info.timestamp) * 1000).toLocaleString()}<br>
-      <strong>Verificador:</strong> ${info.verifier}<br>
+      <strong>ID de Producto:</strong> ${info.productId}<br>
+      <strong>Registrado el:</strong> ${date}<br>
+      <strong>Verificador (Contract Owner):</strong> ${info.verifier}<br>
     `;
 
   } catch (err) {
-    console.error(err);
-    document.getElementById("result").innerHTML = "❌ Error procesando el producto. Revisa la consola para más detalles.";
+    console.error("Error completo:", err);
+    document.getElementById("result").className = "error";
+    document.getElementById("result").innerHTML = "❌ Error procesando la verificación. Revisa la consola para más detalles.";
   }
 }
 
