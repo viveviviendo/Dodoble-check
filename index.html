@@ -9,7 +9,7 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #ca4d92;
+      background: #1db2b4;
       padding: 40px;
       display: flex;
       justify-content: center;
@@ -186,11 +186,11 @@ const ABI = [
   }
 ];
 
-// Función para reemplazar ipfs:// con el gateway HTTPS de Cloudflare (la mejor opción)
+// Función temporal de prueba, apunta a imágenes públicas garantizadas.
 function getGatewayUrl(ipfsUrl) {
-    if (!ipfsUrl) return '';
-    const path = ipfsUrl.replace("ipfs://", "");
-    return `https://cloudflare-ipfs.com/ipfs/${path}`;
+    // Si la URL de IPFS falla, usamos una imagen de prueba temporalmente.
+    // **ESTO DEBE SER REVERTIDO LUEGO DE LA PRUEBA**
+    return "https://upload.wikimedia.org/wikipedia/commons/4/47/Google_logo.svg"; 
 }
 
 async function verifyProduct() {
@@ -220,7 +220,9 @@ async function verifyProduct() {
       return;
     }
 
-    // 4. Asignar URLs de Imágenes
+    // 4. Asignar URLs de Imágenes - USA LA RUTA DE PRUEBA
+    // Las llamadas a metadata.image_original/ai aún obtienen los datos de product1.json,
+    // pero la función getGatewayUrl siempre devuelve la imagen de prueba.
     document.getElementById("imgOriginal").src = getGatewayUrl(metadata.image_original);
     document.getElementById("imgAI").src = getGatewayUrl(metadata.image_ai);
     
