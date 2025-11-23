@@ -9,7 +9,7 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #265fab;
+      background: #ca4d92;
       padding: 40px;
       display: flex;
       justify-content: center;
@@ -113,11 +113,10 @@
       width: 320px;
     }
 
-    /* CSS para asegurar que la imagen tenga un tamaño y sea visible */
     img {
       width: 100%;
-      height: 320px; /* Alto fijo */
-      object-fit: contain; /* Para que la imagen se vea entera */
+      height: 320px; 
+      object-fit: contain; 
       border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
       background: #fafafa;
@@ -211,10 +210,9 @@ async function verifyProduct() {
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
     const hashBytes = ethers.getBytes(metadata.hash);
-    // Llama al getter público 'verifications'
     const info = await contract.verifications(hashBytes);
 
-    // 3. Manejo de Verificación (La parte que ya funciona)
+    // 3. Manejo de Verificación (OK)
     if (!info.exists) {
       document.getElementById("result").className = "error";
       document.getElementById("result").innerHTML =
@@ -222,7 +220,7 @@ async function verifyProduct() {
       return;
     }
 
-    // 4. Asignar URLs de Imágenes con el gateway de Cloudflare
+    // 4. Asignar URLs de Imágenes
     document.getElementById("imgOriginal").src = getGatewayUrl(metadata.image_original);
     document.getElementById("imgAI").src = getGatewayUrl(metadata.image_ai);
     
