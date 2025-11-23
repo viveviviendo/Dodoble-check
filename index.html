@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dodoble – Verificación</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#eef1f4; padding:40px; }
+    .card { background:white; padding:30px; border-radius:16px; max-width:800px; margin:auto; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+    h1 { font-size:28px; margin-bottom:20px; }
+    .row { display:flex; gap:10px; margin-bottom:20px; }
+    input, select { padding:10px; font-size:16px; }
+    button { padding:10px 20px; font-size:16px; background:black; color:white; border:none; border-radius:6px; cursor:pointer; }
+    #images { display:none; margin-top:20px; justify-content:space-between; }
+    img { width:45%; border-radius:8px; }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>🔍 Verificación de Producto</h1>
+
+    <div class="row">
+      <label>Product ID:</label>
+      <select id="productId">
+        <option value="1">1</option>
+      </select>
+      <button onclick="verifyProduct()">Verificar</button>
+    </div>
+
+    <div id="result">Introduce un ID y pulsa verificar.</div>
+
+    <div id="images" class="row">
+      <img id="imgOriginal" />
+      <img id="imgAI" />
+    </div>
+  </div>
+
+<script>
+
+const CONTRACT_ADDRESS = "0x8A9adbC95A900ec0780fCB57828CbB3D0911B985";
+const METADATA_CID = "bafybeiamtaaox6seecbkqa4jaw2ngmbgae7c6klmspvvaaaulhu6kgmqzu";
+
+const ABI = [
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "productId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "imageHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "verifier",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "VerificationIssued",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "imageHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getVerification",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "productId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "returnedHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "verifier",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "exists",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "imageHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isVerified",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "productId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "imageHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "issueVerification",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "verifications",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "productId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "imageHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "verifier",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "exists",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
+
+async function verifyProduct() {
+  document.getElementById("result").innerHTML = "Verificando…";
+
+  try {
+    // 1. Obtener Metadatos del Producto
+    const metadataUrl = `https://w3s.link/ipfs/${METADATA_CID}/product1.json`;
+    const metadata = await fetch(metadataUrl).then(r => r.json());
+
+    // 2. Conectar al Contrato en Polygon
+    const provider = new ethers.JsonRpcProvider("https://polygon-rpc.com");
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+    // 3. Convertir hash a bytes32 y llamar a la función view del contrato
+    const hashBytes = ethers.getBytes(metadata.hash);
+
+    const info = await contract.getVerification(hashBytes);
+
+    // 4. Mostrar Resultado de la Verificación
+    if (!info.exists) {
+      document.getElementById("result").innerHTML = "❌ Producto NO encontrado en blockchain.";
+      return;
+    }
+
+    // 5. Mostrar Imágenes (si la verificación es exitosa)
+    document.getElementById("imgOriginal").src =
+      metadata.image_original.replace("ipfs://", "https://w3s.link/ipfs/");
+    document.getElementById("imgAI").src =
+      metadata.image_ai.replace("ipfs://", "https://w3s.link/ipfs/");
+    document.getElementById("images").style.display = "flex";
+
+    document.getElementById("result").innerHTML = `
+      ✔ Producto encontrado<br><br>
+      <strong>Nombre:</strong> ${metadata.name}<br>
+      <strong>Hash on-chain:</strong> ${info.returnedHash}<br>
+      <strong>Timestamp:</strong> ${new Date(Number(info.timestamp) * 1000).toLocaleString()}<br>
+      <strong>Verificador:</strong> ${info.verifier}<br>
+    `;
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("result").innerHTML = "❌ Error procesando el producto. Revisa la consola para más detalles.";
+  }
+}
+
+</script>
+</body>
+</html>
