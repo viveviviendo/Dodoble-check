@@ -9,7 +9,7 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #4eee04;
+      background: #e2d10f;
       padding: 40px;
       display: flex;
       justify-content: center;
@@ -217,11 +217,13 @@ async function verifyProduct() {
       return;
     }
 
-    // 4. Asignar URLs de Imágenes - USA LA RUTA DE PRUEBA
-    // Las llamadas a metadata.image_original/ai aún obtienen los datos de product1.json,
-    // pero la función getGatewayUrl siempre devuelve la imagen de prueba.
-    document.getElementById("imgOriginal").src = getGatewayUrl(metadata.image_original);
-    document.getElementById("imgAI").src = getGatewayUrl(metadata.image_ai);
+    // 4. Asignar URLs de Imágenes usando directamente el gateway que funciona
+    // Para la demo, ignoramos el CID que venga en el JSON y usamos las rutas
+    // conocidas en ipfs.w3s.link, que ya hemos comprobado que cargan bien.
+    document.getElementById("imgOriginal").src =
+      "https://bafybeiamtaaox6seecbkqa4jaw2ngmbgae7c6klmspvvaaaulhu6kgmqzu.ipfs.w3s.link/original.jpeg";
+    document.getElementById("imgAI").src =
+      "https://bafybeiamtaaox6seecbkqa4jaw2ngmbgae7c6klmspvvaaaulhu6kgmqzu.ipfs.w3s.link/IAimagen.jpeg";
     
     // 5. Mostrar Contenedor
     document.getElementById("images").style.display = "flex"; 
